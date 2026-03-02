@@ -72,16 +72,62 @@
 	// (or a combination) ON THE PROVIDED JSON DATA
 
 	// Define the required ten functions below this line...
-    getGuntherCount(json)
-    getTotalRuntimeMinutes(json)
-    getTotalEpisodesInYear(json, "2000")
-    getFemaleCastMembers(json)
-    getEpisodeTitles(json, 'Ursula')
-    getCastMembersOver55(json)
-    getTotalRuntimeMinutesExcludingSeasonSix(json)
-    getFirstFourSeasons(json)
-    getEpisodeTallyBySeason(json)
-    capitalizeTheFriends(json)
-
+    //loops throught json to find Gunther in summarey
+   const getGuntherCount = (json) =>
+		json._embedded.episodes
+			.filter(e => e.summary && e.summary.includes('Gunther')).length;
+    //Counts runtime of all episode
+	const getTotalRuntimeMinutes = (json) =>
+		json._embedded.episodes
+			.reduce((total, e) => total + (e.runtime || 0), 0);
+    // counts episodes aired in certain year
+	const getTotalEpisodesInYear = (json, year) =>
+		json._embedded.episodes
+			.filter(e => e.airdate && e.airdate.startsWith(year)).length;
+    //Get names of all female cast members
+	const getFemaleCastMembers = (json) =>
+		json._embedded.cast
+			.filter(c => c.person && c.person.gender === 'Female')
+			.map(c => c.person.name);
+    //get episode with the title of the keyword
+	const getEpisodeTitles = (json, search) =>
+		json._embedded.episodes
+			.filter(e => e.summary && e.summary.includes(search))
+			.map(e => e.name);
+    // get cast member who are over 55 in the current year
+	const getCastMembersOver55 = (json) => {
+		const currentYear = new Date().getFullYear();
+		return json._embedded.cast
+			.filter(c => c.person && c.person.birthday)
+			.filter(c => currentYear - new Date(c.person.birthday).getFullYear() > 55)
+			.map(c => c.person.name);
+	};
+    //get runtime of all episode that are not in season 6
+	const getTotalRuntimeMinutesExcludingSeasonSix = (json) =>
+		json._embedded.episodes
+			.filter(e => e.season !== 6)
+			.reduce((total, e) => total + (e.runtime || 0), 0);
+    // Return the name and season of the first 4 seasons
+	const getFirstFourSeasons = (json) =>
+		json._embedded.episodes
+			.filter(e => e.season <= 4)
+			.map(e => ({ season: e.season, name: e.name }));
+    // make and object of the seaons and how many episode are in them
+	const getEpisodeTallyBySeason = (json) =>
+		json._embedded.episodes
+			.reduce((acc, e) => {
+				const key = `Season ${e.season}`;
+				acc[key] = (acc[key] || 0) + 1;
+				return acc;
+			}, {});
+    // capitalize the first letter of the regex search in the names and summarey sections
+	const capitalizeTheFriends = (json) => {
+		const namesRegex = /(joey|chandler|monica|rachel|phoebe|ross)/gi;
+		return json._embedded.episodes.map(e => ({
+			...e,
+			name: e.name ? e.name.replace(namesRegex, m => m.toUpperCase()) : e.name,
+			summary: e.summary ? e.summary.replace(namesRegex, m => m.toUpperCase()) : e.summary
+		}));
+	};
 })();
 
