@@ -109,8 +109,7 @@
 			.reduce((total, e) => total + (e.runtime || 0), 0);
     // Return the name and season of the first 4 seasons
 	const getFirstFourSeasons = (json) =>
-		json._embedded.episodes
-			.filter(e => e.season <= 4)
+		json._embedded.episodes.filter(e => e.season <= 4)
 			.map(e => ({ season: e.season, name: e.name }));
     // make and object of the seaons and how many episode are in them
 	const getEpisodeTallyBySeason = (json) =>
